@@ -1,0 +1,40 @@
+// Complete list of cities and health districts of Côte d'Ivoire
+
+export const IVORY_COAST_CITIES = [
+  'Abidjan', 'Abobo', 'Adjamé', 'Anyama', 'Bingerville', 'Cocody', 'Koumassi', 'Marcory',
+  'Plateau', 'Port-Bouët', 'Treichville', 'Yopougon', 'Songon', 'Aboisso', 'Adiaké',
+  'Agboville', 'Agnibilékrou', 'Adzopé', 'Akoupé', 'Alépé', 'Arrah', 'Bangolo',
+  'Biankouma', 'Béoumi', 'Bocanda', 'Bondoukou', 'Bongouanou', 'Bouaflé', 'Bouaké',
+  'Bouna', 'Boundiali', 'Dabou', 'Daloa', 'Danané', 'Daoukro', 'Dimbokro', 'Divo',
+  'Duékoué', 'Ferkessédougou', 'Gagnoa', 'Grand-Bassam', 'Grand-Lahou', 'Guiglo',
+  'Issia', 'Jacqueville', 'Katiola', 'Korhogo', 'Lakota', 'Man', 'Mankono',
+  'Méagui', 'Minignan', 'Odienné', 'Oumé', 'Sakassou', 'San-Pédro',
+  'Sassandra', 'Séguéla', 'Sinfra', 'Soubré', 'Tabou', 'Taï', 'Tengréla',
+  'Tiassalé', 'Tiébissou', 'Touba', 'Toulepleu', 'Toumodi', 'Vavoua',
+  'Yamoussoukro', 'Zuénoula', 'Abengourou', 'Bonoua', 'Tanda', 'Transua',
+  'Nassian', 'Doropo', 'Téhini', 'Koun-Fao', 'Prikro', 'M\'Bahiakro',
+  'Didiévi', 'Djékanou', 'Toumodi', 'Rubino', 'N\'Douci', 'Sikensi',
+  'Grand-Bassam', 'Assinie', 'Fresco', 'Guéyo', 'Buyo', 'Bloléquin',
+  'Zouan-Hounien', 'Sipilou', 'Santa', 'Gbéléban', 'Madinani', 'Niakara',
+  'Niakaramandougou', 'Tafiré', 'Dabakala', 'Kong', 'Dikodougou',
+  'Kouto', 'Sinématiali', 'M\'Bengué',
+].filter((v, i, a) => a.indexOf(v) === i).sort();
+
+export const HEALTH_DISTRICTS = [
+  'Abidjan 1 - Cocody-Bingerville', 'Abidjan 1 - Abobo Est', 'Abidjan 1 - Abobo Ouest',
+  'Abidjan 2 - Adjamé-Plateau-Attécoubé', 'Abidjan 2 - Yopougon Est', 'Abidjan 2 - Yopougon Ouest',
+  'Abidjan 3 - Koumassi-Port-Bouët-Vridi', 'Abidjan 3 - Marcory-Treichville',
+  'Agnibilékrou', 'Abengourou', 'Aboisso', 'Adzopé', 'Agboville',
+  'Bondoukou', 'Bouna', 'Tanda',
+  'Bouaflé', 'Daloa', 'Issia', 'Vavoua', 'Sinfra',
+  'Bouaké Nord-Est', 'Bouaké Nord-Ouest', 'Bouaké Sud',
+  'Béoumi', 'Katiola', 'Sakassou', 'Dabakala',
+  'Boundiali', 'Korhogo', 'Ferkessédougou', 'Tengréla', 'Sinématiali',
+  'Danané', 'Man', 'Biankouma', 'Bangolo', 'Duékoué', 'Guiglo', 'Toulepleu', 'Bloléquin',
+  'Daoukro', 'Dimbokro', 'Bocanda', 'Bongouanou',
+  'Divo', 'Lakota', 'Oumé', 'Tiassalé',
+  'Gagnoa', 'Soubré', 'Méagui', 'Buyo', 'San-Pédro', 'Tabou', 'Sassandra',
+  'Grand-Bassam', 'Grand-Lahou', 'Dabou', 'Jacqueville',
+  'Mankono', 'Séguéla', 'Touba', 'Odienné', 'Minignan',
+  'Yamoussoukro', 'Toumodi', 'Zuénoula',
+];
