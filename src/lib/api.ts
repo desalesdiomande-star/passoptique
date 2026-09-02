@@ -14,7 +14,7 @@
 export const API_URL =
   import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
-
+console.log('DEBUG API_URL =', API_URL, '| VITE_API_URL brute =', import.meta.env.VITE_API_URL);
 // =====================================================
 // AUTHENTIFICATION
 // =====================================================
