@@ -97,6 +97,12 @@ router.get("/", async (req, res) => {
     |--------------------------------------------------------------------------
     | 1. CHIFFRE D'AFFAIRES MENSUEL
     |--------------------------------------------------------------------------
+    |
+    | IMPORTANT : le SELECT contient 3 expressions basées sur s.date
+    | (YEAR, MONTH, DATE_FORMAT). Toutes les trois doivent apparaître
+    | dans le GROUP BY, sinon MySQL en mode sql_mode=only_full_group_by
+    | (par défaut sur Aiven) rejette la requête avec ER_WRONG_FIELD_WITH_GROUP.
+    |
     */
 
     const [monthlyRevenueRows] = await db.query(
@@ -126,7 +132,8 @@ router.get("/", async (req, res) => {
 
       GROUP BY
         YEAR(s.date),
-        MONTH(s.date)
+        MONTH(s.date),
+        DATE_FORMAT(s.date, '%b')
 
       ORDER BY
         YEAR(s.date),
