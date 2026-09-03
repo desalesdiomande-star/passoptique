@@ -402,10 +402,17 @@ router.get("/", async (req, res) => {
     | ENCAISSEMENTS PAR JOUR
     |--------------------------------------------------------------------------
     |
-    | IMPORTANT : l'expression du SELECT (DATE(p.date)) doit être
-    | strictement identique à celle du GROUP BY, sinon MySQL en
-    | mode sql_mode=only_full_group_by (par défaut sur Aiven)
-    | rejette la requête avec ER_WRONG_FIELD_WITH_GROUP.
+    | IMPORTANT : MySQL en mode sql_mode=only_full_group_by (par défaut
+    | sur Aiven) n'accepte une expression du SELECT comme "dépendante"
+    | du GROUP BY que si elle est STRICTEMENT IDENTIQUE (même arbre
+    | d'expression), et non simplement une fonction pure appliquée à
+    | l'expression du GROUP BY. DATE_FORMAT(DATE(p.date), '%d/%m') dans
+    | le SELECT n'est PAS reconnu comme dépendant de GROUP BY DATE(p.date)
+    | même si c'est logiquement le cas : ça déclenche quand même
+    | ER_WRONG_FIELD_WITH_GROUP. La seule solution fiable est d'utiliser
+    | EXACTEMENT la même expression dans SELECT, GROUP BY et ORDER BY.
+    | (Comme les dates de la requête sont toujours bornées à un seul
+    | mois via WHERE, trier sur le texte '%d/%m' reste chronologique.)
     |
     */
 
@@ -414,7 +421,7 @@ router.get("/", async (req, res) => {
       SELECT
 
         DATE_FORMAT(
-          DATE(p.date),
+          p.date,
           '%d/%m'
         ) AS day,
 
@@ -486,9 +493,9 @@ router.get("/", async (req, res) => {
 
       WHERE ${paymentWhere}
 
-      GROUP BY DATE(p.date)
+      GROUP BY DATE_FORMAT(p.date, '%d/%m')
 
-      ORDER BY DATE(p.date) ASC
+      ORDER BY DATE_FORMAT(p.date, '%d/%m') ASC
       `,
       paymentParams
     );
@@ -658,9 +665,10 @@ router.get("/", async (req, res) => {
     | VENTES DU VENDEUR PAR JOUR
     |--------------------------------------------------------------------------
     |
-    | Même remarque que pour cashierDailyRows : l'expression du
-    | SELECT (DATE(s.date)) doit correspondre exactement à celle
-    | du GROUP BY pour rester compatible avec only_full_group_by.
+    | Même remarque que pour cashierDailyRows : MySQL en mode
+    | only_full_group_by exige une expression STRICTEMENT IDENTIQUE
+    | entre SELECT, GROUP BY et ORDER BY — DATE_FORMAT(DATE(s.date), ...)
+    | n'est pas reconnu comme dépendant de GROUP BY DATE(s.date).
     |
     */
 
@@ -669,7 +677,7 @@ router.get("/", async (req, res) => {
       SELECT
 
         DATE_FORMAT(
-          DATE(s.date),
+          s.date,
           '%d/%m'
         ) AS day,
 
@@ -692,9 +700,9 @@ router.get("/", async (req, res) => {
 
       WHERE ${saleWhere}
 
-      GROUP BY DATE(s.date)
+      GROUP BY DATE_FORMAT(s.date, '%d/%m')
 
-      ORDER BY DATE(s.date) ASC
+      ORDER BY DATE_FORMAT(s.date, '%d/%m') ASC
       `,
       saleParams
     );
