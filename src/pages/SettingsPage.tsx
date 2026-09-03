@@ -11,8 +11,7 @@ import { Store, Users, Plus, Shield, Trash2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { UserRole } from '@/contexts/AuthContext';
 
-const API_URL = 'http://localhost:4000';
-
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 interface ShopProfile {
   name: string;
   address: string;

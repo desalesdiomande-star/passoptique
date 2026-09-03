@@ -30,8 +30,7 @@ import {
 
 import { toast } from "sonner";
 
-const API_URL = "http://localhost:4000"; // même valeur que dans AuthContext.tsx
-
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 // NOUVEAU — le token JWT doit être envoyé sur chaque appel protégé,
 // sinon requireAuth (côté serveur) répond 401 et rien ne s'affiche.
 function authHeaders() {

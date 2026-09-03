@@ -401,6 +401,12 @@ router.get("/", async (req, res) => {
     |--------------------------------------------------------------------------
     | ENCAISSEMENTS PAR JOUR
     |--------------------------------------------------------------------------
+    |
+    | IMPORTANT : l'expression du SELECT (DATE(p.date)) doit être
+    | strictement identique à celle du GROUP BY, sinon MySQL en
+    | mode sql_mode=only_full_group_by (par défaut sur Aiven)
+    | rejette la requête avec ER_WRONG_FIELD_WITH_GROUP.
+    |
     */
 
     const [cashierDailyRows] = await db.query(
@@ -408,7 +414,7 @@ router.get("/", async (req, res) => {
       SELECT
 
         DATE_FORMAT(
-          p.date,
+          DATE(p.date),
           '%d/%m'
         ) AS day,
 
@@ -651,6 +657,11 @@ router.get("/", async (req, res) => {
     |--------------------------------------------------------------------------
     | VENTES DU VENDEUR PAR JOUR
     |--------------------------------------------------------------------------
+    |
+    | Même remarque que pour cashierDailyRows : l'expression du
+    | SELECT (DATE(s.date)) doit correspondre exactement à celle
+    | du GROUP BY pour rester compatible avec only_full_group_by.
+    |
     */
 
     const [sellerDailyRows] = await db.query(
@@ -658,7 +669,7 @@ router.get("/", async (req, res) => {
       SELECT
 
         DATE_FORMAT(
-          s.date,
+          DATE(s.date),
           '%d/%m'
         ) AS day,
 

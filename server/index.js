@@ -33,18 +33,24 @@ const app = express();
 // l'origine du frontend, sinon le navigateur bloque les requêtes
 // malgré un serveur qui répond correctement.
 //
-// FRONTEND_URL peut contenir plusieurs origines séparées par une
-// virgule, pratique pour autoriser à la fois ton URL Vercel de
-// prod et localhost en dev :
+// FRONTEND_URL est défini dans les variables d'environnement
+// de Render (PAS ici dans le code). Il peut contenir plusieurs
+// origines séparées par une virgule, pratique pour autoriser à
+// la fois ton URL Vercel de prod et localhost en dev :
 //
-//   FRONTEND_URL=https://pass-optique.vercel.app,http://localhost:8080
+//   FRONTEND_URL=https://passoptique.vercel.app,http://localhost:8080
+//
+// On normalise chaque origine (trim + suppression d'un éventuel
+// "/" final) car le header Origin envoyé par le navigateur n'a
+// jamais de slash final, et une variable mal configurée avec un
+// slash casserait silencieusement la comparaison exacte de cors.
 // =========================================================
 
 const allowedOrigins = (
   process.env.FRONTEND_URL || "http://localhost:8080"
 )
   .split(",")
-  .map((origin) => origin.trim());
+  .map((origin) => origin.trim().replace(/\/$/, ""));
 
 app.use(
   cors({

@@ -17,6 +17,10 @@ function authHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+// NOUVEAU — même pattern que AuthContext.tsx / PermissionsContext.tsx / lib/api.ts
+// Lit VITE_API_URL (configurée sur Vercel), avec fallback local pour le dev.
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+
 type DashboardData = {
   revenue: number;
   sales: number;
@@ -69,7 +73,7 @@ const DashboardPage = () => {
         setError('');
 
         const response = await fetch(
-          'http://localhost:4000/api/dashboard/stats',
+          `${API_URL}/api/dashboard/stats`,
           {
             headers: authHeaders(), // NOUVEAU — sans ça, 401 systématique
           }
