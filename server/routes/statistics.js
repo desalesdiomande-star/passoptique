@@ -204,6 +204,15 @@ router.get("/", async (req, res) => {
     |--------------------------------------------------------------------------
     */
 
+    /*
+    | IMPORTANT : l'alias ne doit PAS s'appeler "age", car ça collide
+    | avec la vraie colonne c.age de la table. En mode strict MySQL,
+    | le ORDER BY résout alors "age" vers la colonne c.age plutôt que
+    | vers l'alias, et c.age n'étant pas dans le GROUP BY, MySQL rejette
+    | la requête (ER_WRONG_FIELD_WITH_GROUP). On utilise "ageGroup" à la
+    | place, sans aucune collision possible.
+    */
+
     const [ageRows] = await db.query(
       `
       SELECT
@@ -222,7 +231,7 @@ router.get("/", async (req, res) => {
 
           ELSE '60+'
 
-        END AS age,
+        END AS ageGroup,
 
         COUNT(s.id) AS count
 
@@ -254,7 +263,7 @@ router.get("/", async (req, res) => {
         END
 
       ORDER BY
-        CASE age
+        CASE ageGroup
 
           WHEN '0-18' THEN 1
           WHEN '19-30' THEN 2
@@ -269,7 +278,7 @@ router.get("/", async (req, res) => {
     );
 
     const salesByAge = ageRows.map((row) => ({
-      age: row.age,
+      age: row.ageGroup,
       count: Number(row.count || 0),
     }));
 
