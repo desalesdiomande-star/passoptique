@@ -8,6 +8,183 @@ const router = express.Router();
 
 
 // =====================================================
+// POST : INSCRIPTION (rattacher un admin à un cabinet
+// DÉJÀ EXISTANT)
+// POST /api/auth/register
+//
+// body: { fullName, shopName, email, password }
+//
+// IMPORTANT : cette route NE CRÉE PAS de cabinet. Les
+// cabinets sont créés en amont (typiquement via
+// SuperAdminPage → POST /api/cabinet). Ici, shopName
+// doit correspondre EXACTEMENT (après trim, sensible à
+// la casse) au nom d'un cabinet déjà en base.
+//
+// RÈGLE MÉTIER :
+// Un seul admin par cabinet. Dès qu'un cabinet a un
+// admin, c'est à LUI d'ajouter les autres utilisateurs —
+// toute nouvelle tentative d'inscription pour ce même
+// cabinet est refusée.
+// =====================================================
+
+router.post("/register", async (req, res) => {
+
+  const { fullName, shopName, email, password } = req.body;
+
+  // -----------------------------
+  // Validation
+  // -----------------------------
+
+  if (!fullName || !shopName || !email || !password) {
+    return res.status(400).json({
+      error: "Tous les champs sont obligatoires",
+    });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({
+      error: "Le mot de passe doit contenir au moins 6 caractères",
+    });
+  }
+
+  const cleanFullName = String(fullName).trim();
+  const cleanShopName = String(shopName).trim();
+  const cleanEmail = String(email).trim().toLowerCase();
+
+  if (!cleanFullName || !cleanShopName || !cleanEmail) {
+    return res.status(400).json({
+      error: "Tous les champs sont obligatoires",
+    });
+  }
+
+  // -----------------------------
+  // Transaction :
+  //
+  // Une connexion dédiée est nécessaire pour verrouiller
+  // la vérification "le cabinet a-t-il déjà un admin ?"
+  // et l'insertion du nouvel utilisateur dans la même
+  // transaction, et éviter une course entre deux
+  // inscriptions simultanées pour le même cabinet.
+  // -----------------------------
+
+  const connection = await db.getConnection();
+
+  try {
+
+    await connection.beginTransaction();
+
+    // -----------------------------
+    // email déjà utilisé ?
+    // -----------------------------
+
+    const [existingUsers] = await connection.query(
+      `SELECT id FROM app_user WHERE email = ? LIMIT 1`,
+      [cleanEmail]
+    );
+
+    if (existingUsers.length > 0) {
+      await connection.rollback();
+      connection.release();
+
+      return res.status(409).json({
+        error: "Un compte existe déjà avec cet email",
+      });
+    }
+
+    // -----------------------------
+    // le cabinet doit déjà exister
+    //
+    // Correspondance exacte sur le nom (après trim),
+    // sensible à la casse, comme demandé.
+    //
+    // FOR UPDATE verrouille la ligne trouvée pour la
+    // durée de la transaction, afin qu'une deuxième
+    // inscription simultanée pour ce même cabinet
+    // attende que la première se termine avant de
+    // relire l'état "a-t-il déjà un admin ?".
+    // -----------------------------
+
+    const [cabinetRows] = await connection.query(
+      `SELECT id, validated FROM cabinet WHERE TRIM(name) = ? LIMIT 1 FOR UPDATE`,
+      [cleanShopName]
+    );
+
+    if (cabinetRows.length === 0) {
+      await connection.rollback();
+      connection.release();
+
+      return res.status(404).json({
+        error:
+          "Aucun cabinet trouvé avec ce nom. Il doit d'abord être enregistré sur la plateforme.",
+      });
+    }
+
+    const cabinetId = cabinetRows[0].id;
+
+    // -----------------------------
+    // RÈGLE MÉTIER : un seul admin par cabinet
+    // -----------------------------
+
+    const [existingAdmins] = await connection.query(
+      `SELECT id FROM app_user WHERE cabinet_id = ? AND role = 'admin' LIMIT 1`,
+      [cabinetId]
+    );
+
+    if (existingAdmins.length > 0) {
+      await connection.rollback();
+      connection.release();
+
+      return res.status(409).json({
+        error:
+          "Ce cabinet a déjà un administrateur. Contactez-le pour qu'il vous ajoute comme utilisateur.",
+      });
+    }
+
+    // -----------------------------
+    // hacher le mot de passe
+    // -----------------------------
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // -----------------------------
+    // créer l'utilisateur admin, lié au cabinet existant
+    // -----------------------------
+
+    const [userResult] = await connection.query(
+      `
+      INSERT INTO app_user
+      (name, email, password, role, active, cabinet_id)
+      VALUES (?, ?, ?, 'admin', 1, ?)
+      `,
+      [cleanFullName, cleanEmail, hashedPassword, cabinetId]
+    );
+
+    await connection.commit();
+    connection.release();
+
+    res.status(201).json({
+      message: "Compte créé avec succès",
+      cabinetId,
+      userId: userResult.insertId,
+    });
+
+  } catch (err) {
+
+    await connection.rollback();
+    connection.release();
+
+    console.error("Erreur inscription :", err);
+
+    res.status(500).json({
+      error: "Erreur serveur",
+    });
+
+  }
+
+});
+
+
+// =====================================================
 // POST : LOGIN
 // POST /api/auth/login
 // =====================================================
